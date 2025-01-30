@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jack Taylor's Sports Pain Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-image: url('pain_background.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: white; /* Make text readable on background */
+        }
+        .stat-card {
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+            color: #333; /* Dark text for readability */
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: scale(1.02) rotate(1deg);
+            box-shadow: 0 8px 16px rgba(255,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: rainbow 5s infinite, sadBounce 3s infinite;
+        }
+        .pain-meter {
+            color: #ff4444;
+            font-weight: bold;
+            display: inline;
+            background: none;
+            padding: 0;
+            animation: painPulse 2s infinite;
+        }
+        .pain-container {
+            margin: 20px 0;
+            padding: 10px;
+            border: 2px dashed #ff4444;
+            border-radius: 5px;
+        }
+        .pain-gauge {
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(to right, 
+                #00ff00 0%, /* Mild pain */
+                #ffff00 25%, /* Moderate pain */
+                #ffa500 50%, /* Severe pain */
+                #ff0000 75%, /* Critical pain */
+                #800000 100% /* Terminal pain */
+            );
+            border-radius: 15px;
+            position: relative;
+            overflow: visible; /* Changed to visible to show flames */
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .pain-marker {
+            position: absolute;
+            top: -10px;
+            width: 8px;
+            height: calc(100% + 20px);
+            background-color: white;
+            box-shadow: 0 0 10px rgba(255,0,0,0.8);
+            animation: painPulse 2s infinite;
+            z-index: 2;
+        }
+        .pain-marker::before,
+        .pain-marker::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle at center, 
+                rgba(255,255,255,1) 0%,
+                rgba(255,150,50,0.8) 40%,
+                rgba(255,50,50,0.4) 70%,
+                transparent 100%
+            );
+            border-radius: 50%;
+            animation: flame 0.5s infinite alternate;
+        }
+        .pain-marker::after {
+            width: 15px;
+            height: 15px;
+            animation-delay: 0.2s;
+        }
+        .pain-value {
+            position: absolute;
+            top: -35px;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+            animation: painValuePulse 2s infinite;
+        }
+        .image-placeholder {
+            width: 200px;
+            height: 200px;
+            margin: 10px auto;
+            background-color: #ddd;
+            border: 2px dashed #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+        }
+        .sad-trombone {
+            background: linear-gradient(45deg, #ff4444, #ff6b6b);
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255,68,68,0.2);
+        }
+        .sad-trombone:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255,68,68,0.3);
+        }
+        @keyframes rainbow {
+            0% { color: #ff4444; }
+            25% { color: #ffd700; }
+            50% { color: #90EE90; }
+            75% { color: #87CEEB; }
+            100% { color: #ff4444; }
+        }
+        @keyframes flame {
+            0% { 
+                transform: translateX(-50%) scale(1);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: translateX(-50%) scale(1.2);
+                opacity: 1;
+            }
+        }
+        @keyframes painPulse {
+            0% { 
+                box-shadow: 0 0 20px rgba(255,0,0,0.8),
+                           0 0 40px rgba(255,100,0,0.5);
+            }
+            50% { 
+                box-shadow: 0 0 10px rgba(255,0,0,0.5),
+                           0 0 20px rgba(255,100,0,0.3);
+            }
+            100% { 
+                box-shadow: 0 0 20px rgba(255,0,0,0.8),
+                           0 0 40px rgba(255,100,0,0.5);
+            }
+        }
+        @keyframes painValuePulse {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+        .countdown {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+        }
+        .sarcastic-quote {
+            font-style: italic;
+            color: #666;
+            margin: 10px 0;
+            background: none;
+            padding: 0;
+        }
+        .nav-button {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .nav-button:hover {
+            background-color: #555;
+        }
+        .team-logo {
+            width: 200px;
+            height: 200px;
+            margin: 10px auto;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+        .team-logo:hover {
+            transform: rotate(360deg) scale(0.8);
+            opacity: 0.7;
+            transition: all 0.5s ease;
+            filter: grayscale(100%);
+        }
+        @keyframes sadBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            color: #333;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+            animation: modalAppear 0.5s ease;
+        }
+        .pain-input {
+            font-size: 18px;
+            padding: 10px;
+            margin: 15px;
+            width: 100px;
+            border: 2px solid #ff4444;
+            border-radius: 5px;
+        }
+        .submit-pain {
+            background: linear-gradient(45deg, #ff4444, #ff6b6b);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+        .submit-pain:hover {
+            transform: scale(1.05);
+        }
+        #mainContent {
+            display: none;
+        }
+        @keyframes modalAppear {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="painModal" class="modal-overlay">
+        <div class="modal">
+            <h2>Hey Jack, how's the pain today? 😢</h2>
+            <p>On a scale of 1-10, rate your current sports-related emotional damage:</p>
+            <input type="number" id="personalPain" class="pain-input" min="1" max="10" value="5">
+            <p>(1 = Numb to it all, 10 = Considering becoming a soccer fan)</p>
+            <button onclick="submitPersonalPain()" class="submit-pain">Submit Pain Level</button>
+        </div>
+    </div>
+
+    <div id="mainContent">
+        <h1>Jack Taylor's Sports Pain Tracker</h1>
+        <nav>
+            <button class="nav-button" onclick="window.location.href='pain_history.html'">View Historical Pain Analysis</button>
+        </nav>
+
+        <div class="pain-container">
+            <h2>Current Pain Level</h2>
+            <div class="pain-gauge">
+                <div class="pain-marker">
+                    <div class="pain-value">Loading...</div>
+                </div>
+            </div>
+            <p class="sarcastic-quote" id="pain-quote">Loading your daily dose of pain...</p>
+        </div>
+
+        <div class="stat-card">
+            <h2>Jacksonville Jaguars</h2>
+            <img src="jag_logo.png" alt="Sad Jags Logo" class="team-logo">
+            <p>Days since last playoff win: <span id="jags-playoff" class="pain-meter">Loading...</span></p>
+            <p>Days since last Super Bowl appearance: <span id="jags-superbowl" class="pain-meter">Loading...</span></p>
+            <p>Jack was <span id="jags-playoff-age" class="pain-meter">Loading...</span> years old during the last playoff win!</p>
+            <p class="countdown" id="jags-next-game">Loading next disappointment schedule...</p>
+            <button class="sad-trombone" onclick="playTrombone()">Play Sad Trombone 🎺</button>
+        </div>
+
+        <div class="stat-card">
+            <h2>Florida State</h2>
+            <img src="fsu_logo.png" alt="Sad FSU Logo" class="team-logo">
+            <p>Days since last CFP win: <span id="fsu-playoff" class="pain-meter">Loading...</span></p>
+            <p>Days since last National Championship: <span id="fsu-championship" class="pain-meter">Loading...</span></p>
+            <p>Jack was <span id="fsu-championship-age" class="pain-meter">Loading...</span> years old during the last championship!</p>
+            <p class="countdown" id="fsu-next-game">Loading next heartbreak schedule...</p>
+            <button class="sad-trombone" onclick="playTrombone()">Play Sad Trombone 🎺</button>
+        </div>
+    </div>
+
+    <script>
+        let personalPainLevel = 5; // Default value
+
+        function submitPersonalPain() {
+            const painInput = document.getElementById('personalPain');
+            personalPainLevel = Math.max(1, Math.min(10, parseInt(painInput.value) || 5));
+            
+            // Hide modal and show main content
+            document.getElementById('painModal').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            // Update pain calculations with personal pain factor
+            updatePainMeter();
+        }
+
+        // Update the pain calculation to give personal pain more weight
+        function calculateCurrentPain(jagsRecord, fsuRecord, playoffResult) {
+            const [jagsWins, jagsLosses] = jagsRecord.split('-').map(Number);
+            const [fsuWins, fsuLosses] = fsuRecord.split('-').map(Number);
+            
+            const jagsPercentage = jagsWins / (jagsWins + jagsLosses);
+            const fsuPercentage = fsuWins / (fsuWins + fsuLosses);
+            
+            // Calculate team pains as before
+            let jagsPain = jagsPercentage > 0.5 
+                ? (jagsPercentage * 12.5)
+                : (25 + ((0.5 - jagsPercentage) * 50));
+            
+            let fsuPain = fsuPercentage > 0.5 
+                ? (fsuPercentage * 12.5)
+                : (25 + ((0.5 - fsuPercentage) * 50));
+            
+            let doubleMiseryBonus = (jagsPercentage <= 0.3 && fsuPercentage <= 0.3) ? 35 : 
+                                   (jagsPercentage <= 0.5 && fsuPercentage <= 0.5) ? 25 : 0;
+            
+            let playoffPain = playoffResult.includes("Bad.") ? 15 : 0;
+            
+            // Increase personal pain factor to 40% of total possible pain
+            // This makes Jack's mood a major factor in the pain calculation
+            let personalPainFactor = (personalPainLevel / 10) * 40;
+            
+            // If personal pain is high (8+), add extra suffering bonus
+            if (personalPainLevel >= 8) {
+                personalPainFactor += 15; // Additional pain bonus for extreme personal suffering
+            }
+            
+            // Calculate base pain from teams and playoffs
+            let basePain = jagsPain + fsuPain + playoffPain + doubleMiseryBonus;
+            
+            // Blend personal pain with team pain, weighted towards personal pain
+            const totalPain = Math.min(100, (basePain * 0.6) + personalPainFactor);
+            
+            // With these records and high personal pain, ensure minimum pain of 95
+            return Math.max(totalPain, personalPainLevel >= 7 ? 95 : 90);
+        }
+
+        // Don't start updating pain meter until personal pain is submitted
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('mainContent').style.display = 'none';
+        });
+
+        // Jack's birthday (adjust this)
+        const jackBirthday = new Date('1998-01-31');
+
+        // Important dates
+        const jagsLastPlayoffWin = new Date('2023-01-14'); // vs Chargers in 2023
+        const jagsLastSuperBowl = new Date('Never'); // They've never been!
+        const fsuLastPlayoffWin = new Date('Never'); // They've never won a CFP game
+        const fsuLastChampionship = new Date('Never'); // vs Auburn
+
+        // Add sad trombone sound with a more reliable source
+        const tromboneSound = new Audio('https://www.myinstants.com/media/sounds/sadtrombone.swf.mp3');
+        
+        // Expanded sarcastic quotes
+        const painQuotes = [
+            "Pain level: Making the Lions look good",
+            "At least we're not the Browns... oh wait, they're better now",
+            "Remember when we had hope? Yeah, me neither",
+            "Trevor Lawrence's hair deserves better than this",
+            "FSU: Forever Seeking Ultimate disappointment",
+            "Jags Motto: There's Always Next Year™",
+            "Pain Level: Making Jets fans feel better about themselves",
+            "At least the concession stands are reliable",
+            "Breaking News: Jack's therapist just bought a new yacht",
+            "Emotional Damage Level: Critical",
+            "This site sponsored by antidepressants",
+            "Fun Fact: Jack's tears could fill an Olympic pool",
+            "Loading copium reserves...",
+            "Calculating disappointment trajectory...",
+            "Error 404: Championship not found",
+            "Searching for hope... Search failed",
+            "Today's Forecast: 100% chance of sports pain",
+            "Jaguars Stadium: Where dreams go to die",
+            "FSU: Finding Spectacular Ways to Underachieve",
+            "Trevor Lawrence's hair: Still undefeated",
+            "Updating pain database... Oh wait, it's already maxed out",
+            "Therapist's Note: Maybe try knitting instead?",
+            "Loading alternative reality where we actually win...",
+            "Time since last meaningful victory: ERROR_OVERFLOW",
+            "Initiating emergency coping mechanisms...",
+            "Warning: Viewing this site may cause extreme sadness"
+        ];
+
+        // Add random motivational messages that are actually depressing
+        function getRandomMotivation() {
+            const messages = [
+                "Remember, it can always get worse!",
+                "Every cloud has a silver lining... except in Jacksonville",
+                "Pain is temporary, disappointment is forever",
+                "Keep your head up! It makes the tears fall faster",
+                "Success is just failure taking a break"
+            ];
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
+
+        // Update countdown messages to be more sarcastic
+        function updateCountdowns() {
+            const nextJagsGame = new Date('2025-09-07');
+            const nextFSUGame = new Date('2025-08-30');
+            
+            const daysUntilJags = Math.ceil((nextJagsGame - new Date()) / (1000 * 60 * 60 * 24));
+            const daysUntilFSU = Math.ceil((nextFSUGame - new Date()) / (1000 * 60 * 60 * 24));
+
+            document.getElementById('jags-next-game').textContent = 
+                `Next scheduled heartbreak in: ${daysUntilJags} days (but who's counting?)`;
+            document.getElementById('fsu-next-game').textContent = 
+                `Time until next emotional damage: ${daysUntilFSU} days (therapy recommended)`;
+        }
+
+        // Add random "fun facts" about Jack's sports pain
+        function updateFunFact() {
+            const facts = [
+                "Jack has spent approximately 47,832 hours watching his teams lose",
+                "The amount of money spent on game tickets could have bought a small island",
+                "Scientists study Jack's teams to understand the concept of infinite disappointment",
+                "Jack's blood pressure during games could power a small city"
+            ];
+            
+            // Clear existing facts first
+            const container = document.querySelector('.pain-container');
+            const existingFacts = container.querySelectorAll('.sarcastic-quote:not(#pain-quote)');
+            existingFacts.forEach(fact => fact.remove());
+            
+            // Add new fact
+            const factElement = document.createElement('p');
+            factElement.className = 'sarcastic-quote';
+            factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+            container.appendChild(factElement);
+        }
+
+        // Call updateFunFact initially and set interval
+        updateFunFact();
+        setInterval(updateFunFact, 15000); // Updates every 15 seconds
+
+        function playTrombone() {
+            tromboneSound.play();
+        }
+
+        // Update pain quote randomly every 10 seconds
+        function updatePainQuote() {
+            const quoteElement = document.getElementById('pain-quote');
+            quoteElement.textContent = painQuotes[Math.floor(Math.random() * painQuotes.length)];
+        }
+        updatePainQuote();
+        setInterval(updatePainQuote, 10000);
+
+        // Next game countdowns
+        updateCountdowns();
+
+        function calculateDays(date) {
+            if (date.toString() === 'Invalid Date') {
+                return "NEVER";
+            }
+            const today = new Date();
+            const diffTime = Math.abs(today - date);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function calculateAge(birthDate, eventDate) {
+            if (eventDate.toString() === 'Invalid Date') {
+                return "N/A";
+            }
+            const diff = eventDate - birthDate;
+            return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+        }
+
+        // Update all stats
+        document.getElementById('jags-playoff').textContent = calculateDays(jagsLastPlayoffWin);
+        document.getElementById('jags-superbowl').textContent = "∞ (Never happened!)";
+        document.getElementById('jags-playoff-age').textContent = calculateAge(jackBirthday, jagsLastPlayoffWin);
+        
+        document.getElementById('fsu-playoff').textContent = "∞ (Still waiting!)";
+        document.getElementById('fsu-championship').textContent ="∞ (Maybe next year!)";
+        document.getElementById('fsu-championship-age').textContent = calculateAge(jackBirthday, fsuLastChampionship);
+
+        // Update the pain meter function to be more dramatic
+        function updatePainMeter() {
+            const painScore = calculateCurrentPain(currentJagsRecord, currentFSURecord, currentPlayoffStatus);
+            const painPercentage = Math.min((painScore / 100) * 100, 100);
+            
+            const painMarker = document.querySelector('.pain-marker');
+            const painValue = painMarker.querySelector('.pain-value');
+            
+            painMarker.style.left = `${painPercentage}%`;
+            painValue.textContent = `Pain: ${Math.round(painScore)}`;
+            
+            // Update pain quote based on pain level
+            let painMessage;
+            if (painScore > 95) {
+                painMessage = "TERMINAL: Seeking group therapy rates! 🚨💀";
+                painValue.style.backgroundColor = 'rgba(128, 0, 0, 0.9)';
+            } else if (painScore > 90) {
+                painMessage = "CRITICAL: Immediate therapy required! 🚨";
+                painValue.style.backgroundColor = 'rgba(255, 0, 0, 0.9)';
+            } else if (painScore > 80) {
+                painMessage = "SEVERE: Consider changing teams... or sports... or hobbies 😭";
+                painValue.style.backgroundColor = 'rgba(255, 0, 0, 0.9)';
+            } else if (painScore > 60) {
+                painMessage = "MODERATE: At least we're not the... oh wait, we ARE that bad! 😅";
+                painValue.style.backgroundColor = 'rgba(255, 165, 0, 0.9)';
+            } else {
+                painMessage = "MILD: A glitch in the pain matrix! 😌";
+                painValue.style.backgroundColor = 'rgba(0, 255, 0, 0.9)';
+            }
+            
+            document.getElementById('pain-quote').textContent = 
+                `Current Pain Level: ${Math.round(painScore)} - ${painMessage}`;
+        }
+
+        // Add current status
+        const currentJagsRecord = "4-13";
+        const currentFSURecord = "2-10";
+        const currentPlayoffStatus = "Bad."; // This was missing
+
+        // Make sure we're calling updatePainMeter
+        // Call it immediately and set interval
+        updatePainMeter();
+        setInterval(updatePainMeter, 5000);
+
+        // Make sure the pain marker HTML exists in the pain container div
+        document.querySelector('.pain-container').innerHTML = `
+            <h2>Current Pain Level</h2>
+            <div class="pain-gauge">
+                <div class="pain-marker">
+                    <div class="pain-value">Loading...</div>
+                </div>
+            </div>
+            <p class="sarcastic-quote" id="pain-quote">Loading your daily dose of pain...</p>
+        `;
+
+        // Call all our update functions
+        updatePainMeter();
+        updateFunFact();
+        updateCountdowns();
+        updatePainQuote();
+    </script>
+</body>
+</html> 

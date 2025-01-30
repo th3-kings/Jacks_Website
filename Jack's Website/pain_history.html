@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jack's Historical Pain Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-image: url('pain_background.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: white;
+        }
+        .chart-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .pain-formula {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 15px;
+            border-left: 4px solid #ff4444;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .nav-button {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button class="nav-button" onclick="window.location.href='index.html'">Back to Pain Tracker</button>
+    <h1>Historical Pain Analysis (1998-2023)</h1>
+    
+    <div class="pain-formula">
+        <h3>Pain Score Formula (0-100 Scale):</h3>
+        <p>Base Pain = (Jags_Pain + FSU_Pain + Playoff_Pain + Double_Misery_Bonus)</p>
+        <p>Where:</p>
+        <ul>
+            <li>Team Pain Calculation:
+                <ul>
+                    <li>If Win % > 0.500: Pain = (Win_Percentage * 12.5) [Less pain for winning]</li>
+                    <li>If Win % ≤ 0.500: Pain = 25 + ((0.500 - Win_Percentage) * 50) [Exponential pain for losing]</li>
+                </ul>
+            </li>
+            <li>Double Misery Bonus: +25 when BOTH teams are below .500</li>
+            <li>Playoff Pain Modifiers:
+                <ul>
+                    <li>+25: CFP Snub (Special FSU 2023 Pain)</li>
+                    <li>+15: Championship/Super Bowl Loss</li>
+                    <li>+11: Playoff/Bowl Loss after leading</li>
+                    <li>+9: First Round Exit</li>
+                    <li>+6: Missing Playoffs/Bowl when eligible</li>
+                    <li>-5: Playoff/Bowl Win (rare pain relief)</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="painChart"></canvas>
+    </div>
+
+    <script>
+        function calculatePainScore(jagsRecord, fsuRecord, playoffResult) {
+            const [jagsWins, jagsLosses] = jagsRecord.split('-').map(Number);
+            const [fsuWins, fsuLosses] = fsuRecord.split('-').map(Number);
+            
+            const jagsPercentage = jagsWins / (jagsWins + jagsLosses);
+            const fsuPercentage = fsuWins / (fsuWins + fsuLosses);
+            
+            // Calculate Jags Pain - More losses = More pain
+            let jagsPain = jagsPercentage > 0.5 
+                ? (jagsPercentage * 12.5) // Doing well, less pain
+                : (25 + ((0.5 - jagsPercentage) * 50)); // Doing badly, exponential pain
+            
+            // Calculate FSU Pain - More losses = More pain
+            let fsuPain = fsuPercentage > 0.5 
+                ? (fsuPercentage * 12.5) // Doing well, less pain
+                : (25 + ((0.5 - fsuPercentage) * 50)); // Doing badly, exponential pain
+            
+            // Double Misery Bonus
+            let doubleMiseryBonus = (jagsPercentage <= 0.5 && fsuPercentage <= 0.5) ? 25 : 0;
+            
+            // Playoff Pain
+            let playoffPain = 0;
+            if (playoffResult.includes("Snub")) playoffPain = 25;
+            else if (playoffResult.includes("Missed Playoffs")) playoffPain = 6;
+            else if (playoffResult.includes("First Round Exit")) playoffPain = 9;
+            else if (playoffResult.includes("Lost After Leading")) playoffPain = 11;
+            else if (playoffResult.includes("Championship Loss") || playoffResult.includes("Super Bowl Loss")) playoffPain = 15;
+            else if (playoffResult.includes("Win")) playoffPain = -5;
+            
+            return Math.min(100, jagsPain + fsuPain + playoffPain + doubleMiseryBonus);
+        }
+
+        // Example data points that will now show proper pain levels
+        const historicalData = {
+            1998: { jagsRecord: "11-5", fsuRecord: "11-2", playoffs: "Jags Div Loss, FSU Bowl Win" },
+            1999: { jagsRecord: "14-2", fsuRecord: "12-0", playoffs: "Jags AFC Championship Loss, FSU National Champions" },
+            2000: { jagsRecord: "7-9", fsuRecord: "11-2", playoffs: "FSU National Championship Loss" },
+            2001: { jagsRecord: "6-10", fsuRecord: "8-4", playoffs: "FSU Gator Bowl Loss" },
+            2002: { jagsRecord: "6-10", fsuRecord: "9-5", playoffs: "FSU Sugar Bowl Loss" },
+            2003: { jagsRecord: "5-11", fsuRecord: "10-3", playoffs: "FSU Orange Bowl Loss" },
+            2004: { jagsRecord: "9-7", fsuRecord: "9-3", playoffs: "FSU Gator Bowl Win" },
+            2005: { jagsRecord: "12-4", fsuRecord: "8-5", playoffs: "Jags Wild Card Loss, FSU Orange Bowl Loss" },
+            2006: { jagsRecord: "8-8", fsuRecord: "7-6", playoffs: "FSU Emerald Bowl Win" },
+            2007: { jagsRecord: "11-5", fsuRecord: "7-6", playoffs: "Jags Div Loss, FSU Music City Bowl Loss" },
+            2008: { jagsRecord: "5-11", fsuRecord: "9-4", playoffs: "FSU Champs Sports Bowl Win" },
+            2009: { jagsRecord: "7-9", fsuRecord: "7-6", playoffs: "FSU Gator Bowl Win" },
+            2010: { jagsRecord: "8-8", fsuRecord: "10-4", playoffs: "FSU Chick-fil-A Bowl Win" },
+            2011: { jagsRecord: "5-11", fsuRecord: "9-4", playoffs: "FSU Champs Sports Bowl Win" },
+            2012: { jagsRecord: "2-14", fsuRecord: "12-2", playoffs: "FSU Orange Bowl Win" },
+            2013: { jagsRecord: "4-12", fsuRecord: "14-0", playoffs: "FSU National Champions" },
+            2014: { jagsRecord: "3-13", fsuRecord: "13-1", playoffs: "FSU Rose Bowl Loss" },
+            2015: { jagsRecord: "5-11", fsuRecord: "10-3", playoffs: "FSU Peach Bowl Loss" },
+            2016: { jagsRecord: "3-13", fsuRecord: "10-3", playoffs: "FSU Orange Bowl Win" },
+            2017: { jagsRecord: "10-6", fsuRecord: "7-6", playoffs: "Jags AFC Championship Loss, FSU Independence Bowl Win" },
+            2018: { jagsRecord: "5-11", fsuRecord: "5-7", playoffs: "FSU No Bowl Appearance" },
+            2019: { jagsRecord: "6-10", fsuRecord: "6-7", playoffs: "FSU Sun Bowl Loss" },
+            2020: { jagsRecord: "1-15", fsuRecord: "3-6", playoffs: "FSU No Bowl Appearance" },
+            2021: { jagsRecord: "3-14", fsuRecord: "5-7", playoffs: "FSU No Bowl Appearance" },
+            2022: { jagsRecord: "9-8", fsuRecord: "10-3", playoffs: "Jags Div Loss, FSU Cheez-It Bowl Win" },
+            2023: { jagsRecord: "9-8", fsuRecord: "13-1", playoffs: "FSU CFP Snub" }
+        };
+
+
+        // Create chart with updated data
+        const ctx = document.getElementById('painChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(historicalData),
+                datasets: [{
+                    label: 'Jack\'s Pain Score',
+                    data: Object.entries(historicalData).map(([year, data]) => 
+                        calculatePainScore(data.jagsRecord, data.fsuRecord, data.playoffs)
+                    ),
+                    borderColor: '#ff4444',
+                    backgroundColor: 'rgba(255, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Pain Level',
+                            color: '#333'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#333'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            afterLabel: function(context) {
+                                const year = context.label;
+                                const data = historicalData[year];
+                                return [
+                                    `Jags Record: ${data.jagsRecord}`,
+                                    `FSU Record: ${data.fsuRecord}`,
+                                    `Notable Pain: ${data.playoffs}`,
+                                    `Therapy Sessions Needed: ${Math.ceil(context.raw / 25)}`
+                                ];
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Historical Analysis of Jack\'s Sports-Induced Suffering'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
